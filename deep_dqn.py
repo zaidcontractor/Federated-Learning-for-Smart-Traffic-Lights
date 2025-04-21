@@ -156,17 +156,31 @@ def train_dqn(csv_path: str | Path, env_name: str = "sumo_rl", episodes: int = 5
     cfg = DQNConfig(state_dim=state_dim, action_dim=action_dim, device=device)
     agent = DQNAgent(cfg)
 
+    # for ep in trange(episodes, desc="episodes", unit="ep"):
+    #     s, _ = env.reset()
+    #     done = False; ep_ret = 0
+    #     while not done:
+    #         a = agent.select_action(s)
+    #         s2, r, done, _, _ = env.step(a)
+    #         agent.buf.push(s, a, r, s2, done)
+    #         s, ep_ret = s2, ep_ret + r
+    #         agent.learn(); agent.update_eps()
+    #     if ep % 10 == 0:
+    #         print(f"Episode {ep}: return={ep_ret:.1f}, eps={agent.eps:.2f}")
+
     for ep in trange(episodes, desc="episodes", unit="ep"):
         s, _ = env.reset()
-        done = False; ep_ret = 0
-        while not done:
+        done = False; ep_ret = 0; steps = 0
+        max_steps = 1000  # or 500 if you want shorter
+        while not done and steps < max_steps:
             a = agent.select_action(s)
             s2, r, done, _, _ = env.step(a)
             agent.buf.push(s, a, r, s2, done)
             s, ep_ret = s2, ep_ret + r
             agent.learn(); agent.update_eps()
-        if ep % 10 == 0:
-            print(f"Episode {ep}: return={ep_ret:.1f}, eps={agent.eps:.2f}")
+            steps += 1
+        print(f"Episode {ep} finished after {steps} steps.")
+
 
     if weight_file:
         Path(weight_file).parent.mkdir(parents=True, exist_ok=True)
