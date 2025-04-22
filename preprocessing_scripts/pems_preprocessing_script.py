@@ -7,6 +7,7 @@ import pandas as pd
 import sys
 
 def preprocess_pems_data(input_path, output_path):
+    
     df = pd.read_csv(input_path)
 
     df['Timestamp'] = pd.to_datetime(df['Timestamp'], format='%m/%d/%Y %H:%M:%S')
