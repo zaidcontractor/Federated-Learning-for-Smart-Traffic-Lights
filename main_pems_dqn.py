@@ -1,3 +1,5 @@
+#main_pems_dqn.py
+
 #!/usr/bin/env python3
 import argparse
 from pathlib import Path
@@ -6,6 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import sys
+import scipy
 
 from pems_traffic_env import PeMSTrafficEnv
 from traffic_dqn_agent import TrafficDQNAgent
@@ -43,9 +46,22 @@ def train(data_path, episodes=100, max_steps=288, weights_dir="weights"):
     
     # Training loop
     rewards = []
+    # Track which district was used for each episode
+    districts = []
+    # Track rewards by district
+    district_rewards = {}
+    
     for episode in range(1, episodes+1):
         state = env.reset()
         episode_reward = 0
+        
+        # Track which district is being used for this episode
+        current_district = env.district_ids[env.current_file_idx]
+        districts.append(current_district)
+        
+        # Initialize district in district_rewards if not already there
+        if current_district not in district_rewards:
+            district_rewards[current_district] = []
         
         for step in range(max_steps):
             # Select action
@@ -66,24 +82,23 @@ def train(data_path, episodes=100, max_steps=288, weights_dir="weights"):
         
         # Track progress
         rewards.append(episode_reward)
+        district_rewards[current_district].append(episode_reward)
         avg_reward = np.mean(rewards[-10:]) if len(rewards) >= 10 else np.mean(rewards)
         
         # Print status
-        print(f"Episode {episode}/{episodes} | Reward: {episode_reward:.2f} | "
-              f"Avg (10): {avg_reward:.2f} | Epsilon: {agent.eps:.4f}")
+        print(f"Episode {episode}/{episodes} | District: {current_district} | "
+              f"Reward: {episode_reward:.2f} | Avg (10): {avg_reward:.2f} | Epsilon: {agent.eps:.4f}")
         
         # Save model periodically
         if episode % 10 == 0 or episode == episodes:
             torch.save(agent.qnetwork_local.state_dict(), f"{weights_dir}/dqn_traffic_{episode}.pth")
     
     # Plot learning curve
-    # Plot learning curve and save it
     plt.figure(figsize=(12, 10))
 
     # Plot episode rewards
-    plt.subplot(2, 1, 1)
-    plt.plot(rewards, marker='o', linestyle='-', alpha=0.7)
-    plt.title(f"Training Rewards over {episodes} Episodes", fontsize=14)
+    plt.plot(rewards, marker='o', linestyle='-', alpha=0.7, label='Reward for Each Episode')
+    plt.title(f"Training Rewards over {episodes} Episodes - DQN", fontsize=14)
     plt.xlabel("Episode", fontsize=12)
     plt.ylabel("Total Reward", fontsize=12)
     plt.grid(True)
@@ -93,25 +108,40 @@ def train(data_path, episodes=100, max_steps=288, weights_dir="weights"):
     plt.plot(running_avg, 'r-', linewidth=2, label='10-Episode Average')
     plt.legend()
 
-    # Plot rewards by district
-    if len(rewards) > 5:  # Only if we have enough episodes
-        plt.subplot(2, 1, 2)
+    # # Plot rewards by district
+    # if len(rewards) > 5:  # Only if we have enough episodes
+    #     plt.subplot(2, 1, 2)
         
-        # We need to track which episodes were for which districts
-        # This needs to be collected during training, so add to the main loop:
-        # districts = []  # Add this at start of train function
-        # districts.append(env.district_ids[env.current_file_idx])  # Add inside episode loop
+    #     # Plot data for each district
+    #     unique_districts = list(district_rewards.keys())
+    #     colors = plt.cm.tab10(np.linspace(0, 1, len(unique_districts)))
         
-        # For now, just show a placeholder
-        plt.text(0.5, 0.5, "District-specific performance will be shown here\nwhen tracking is added to the code", 
-                ha='center', va='center', fontsize=12, transform=plt.gca().transAxes)
-        plt.title("Performance by District", fontsize=14)
-        plt.xlabel("Episode", fontsize=12)
-        plt.ylabel("Average Reward", fontsize=12)
+    #     for i, district in enumerate(unique_districts):
+    #         # Get episode indices where this district was used
+    #         indices = [j for j, d in enumerate(districts) if d == district]
+    #         if indices:
+    #             plt.scatter(indices, [rewards[j] for j in indices], 
+    #                        label=district, color=colors[i], alpha=0.7)
+                
+    #             # If we have enough data points for this district, plot a trend line
+    #             if len(indices) > 3:
+    #                 from scipy import stats
+    #                 # Simple linear regression for trend
+    #                 slope, intercept, r_value, p_value, std_err = stats.linregress(
+    #                     indices, [rewards[j] for j in indices])
+    #                 x_line = np.array([min(indices), max(indices)])
+    #                 y_line = slope * x_line + intercept
+    #                 plt.plot(x_line, y_line, color=colors[i], linestyle='--', alpha=0.5)
         
-        plt.tight_layout()
-        plt.savefig("results/learning_curve.png", dpi=300)  # Higher DPI for better quality
-        print(f"Learning curve saved to results/learning_curve.png")
+    #     plt.title("Performance by District", fontsize=14)
+    #     plt.xlabel("Episode", fontsize=12)
+    #     plt.ylabel("Reward", fontsize=12)
+    #     plt.legend(title="Districts")
+    #     plt.grid(True)
+        
+    plt.tight_layout()
+    plt.savefig("results/learning_curve.png", dpi=300)  # Higher DPI for better quality
+    print(f"Learning curve saved to results/learning_curve.png")
 
     return agent
 
