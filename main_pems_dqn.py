@@ -140,7 +140,7 @@ def train(data_path, episodes=100, max_steps=288, weights_dir="weights"):
     #     plt.grid(True)
         
     plt.tight_layout()
-    plt.savefig("results/learning_curve.png", dpi=300)  # Higher DPI for better quality
+    plt.savefig("results/learning_curve_dqn.png", dpi=300)  # Higher DPI for better quality
     print(f"Learning curve saved to results/learning_curve.png")
 
     return agent
