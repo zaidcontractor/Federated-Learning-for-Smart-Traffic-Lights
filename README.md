@@ -1,6 +1,6 @@
 # Federated Learning for Smart Traffic Lights
 
-This project implements a Deep Q-Network (DQN) approach for traffic signal control using PeMS traffic data. The system leverages real-world traffic data to train intelligent traffic light controllers without requiring complex traffic simulation environments.
+Modern urban traffic management heavily relies on outdated centralized systems with fixed timers or centralized AI models requiring extensive data collection. These approaches struggle to adapt to dynamic, region-specific traffic conditions, leading to inefficiencies, privacy concerns, and scalability challenges. This project addresses these limitations by leveraging Reinforcement Learning (RL), specifically Deep Q-Networks (DQN) and Proximal Policy Optimization (PPO), to optimize local traffic signals using real-time traffic data from the PeMS dataset. Our results demonstrate significant improvements in traffic flow, reduced queue lengths, and enhanced vehicle speeds. Building on these RL advancements, we propose integrating our successful local models into a Federated Learning (FL) infrastructure. This decentralized approach enables collaborative global model training across multiple urban intersections without exchanging sensitive data, thereby providing an adaptive, scalable, and privacy-preserving traffic management solution.
 
 ## Overview
 
