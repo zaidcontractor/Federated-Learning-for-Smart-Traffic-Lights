@@ -295,6 +295,15 @@ class TrafficDQNAgent:
         self.qnetwork_local.load_state_dict(torch.load(filepath, map_location=device))
         self.qnetwork_target.load_state_dict(self.qnetwork_local.state_dict())
         print(f"Model loaded from {filepath}")
+        
+    def select_action(self, state: np.ndarray, eval_mode: bool = False):
+        """
+        Alias for main_pems_dqn.evaluate compatibility:
+        returns (action, None, None)
+        """
+        a = self.act(state, eval_mode=eval_mode)
+        return a, None, None
+
     
     def plot_training_metrics(self, save_path=None):
         """Plot training metrics"""

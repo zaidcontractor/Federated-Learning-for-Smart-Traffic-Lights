@@ -415,37 +415,47 @@ class PeMSTrafficEnv:
         print(f"Total Reward: {self.total_reward:.2f}")
     
     def plot_metrics(self, save_path=None):
-        """Plot performance metrics"""
+        """Plot performance metrics with time-of-day on the x-axis."""
         if not self.rewards:
             print("No data to plot yet")
             return
-            
-        steps = range(len(self.rewards))
+        
+        # Compute time stamps (minutes since start)
+        times_min = np.arange(len(self.rewards)) * self.time_window
+        # Convert to HH:MM labels
+        labels = [f"{int(t//60):02d}:{int(t%60):02d}" for t in times_min]
+        # Choose tick interval to avoid overcrowding
+        tick_interval = max(1, len(times_min) // 8)
         
         plt.figure(figsize=(12, 10))
         
+        # Rewards over time
         plt.subplot(3, 1, 1)
-        plt.plot(steps, self.rewards)
+        plt.plot(times_min, self.rewards, marker='o')
         plt.title(f'Rewards over Time - {self.district_ids[self.current_file_idx]}')
-        plt.xlabel('Step')
+        plt.xlabel('Time of Day (HH:MM)')
         plt.ylabel('Reward')
+        plt.xticks(times_min[::tick_interval], labels[::tick_interval], rotation=45)
         plt.grid(True)
         
+        # Queue length over time
         plt.subplot(3, 1, 2)
-        plt.plot(steps, self.queue_lengths)
+        plt.plot(times_min, self.queue_lengths, marker='o')
         plt.title('Queue Length over Time')
-        plt.xlabel('Step')
+        plt.xlabel('Time of Day (HH:MM)')
         plt.ylabel('Queue Length')
+        plt.xticks(times_min[::tick_interval], labels[::tick_interval], rotation=45)
         plt.grid(True)
         
+        # Average speed over time
         plt.subplot(3, 1, 3)
-        plt.plot(steps, self.avg_speeds)
+        plt.plot(times_min, self.avg_speeds, marker='o')
         plt.title('Average Speed over Time')
-        plt.xlabel('Step')
+        plt.xlabel('Time of Day (HH:MM)')
         plt.ylabel('Speed')
+        plt.xticks(times_min[::tick_interval], labels[::tick_interval], rotation=45)
         plt.grid(True)
         
         plt.tight_layout()
-        
         if save_path:
             plt.savefig(save_path)
